@@ -12,22 +12,6 @@ import type { ConversationState, ConversationMessage, ConversationEdit } from '@
 import { appConfig } from '@/config/app.config';
 import { requireCredits, CREDIT_COSTS } from '@/lib/credits';
 
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const anthropic = createAnthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com/v1',
-});
-
-const googleGenerativeAI = createGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Helper function to analyze user preferences from conversation history
 function analyzeUserPreferences(messages: ConversationMessage[]): {
@@ -74,6 +58,11 @@ declare global {
 }
 
 export async function POST(request: NextRequest) {
+  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY || '' });
+  const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '', baseURL: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com/v1' });
+  const googleGenerativeAI = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || '' });
+  const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
+
   try {
     const { prompt, model = 'google/gemini-2.5-flash', context, isEdit = false } = await request.json();
 

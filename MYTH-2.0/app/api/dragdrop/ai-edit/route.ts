@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 
-const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function POST(request: Request) {
+    const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || '' });
     try {
         const { sectionType, currentData, prompt } = await request.json();
 
@@ -28,7 +27,7 @@ User instruction: "${prompt}"
 Return the updated JSON:`;
 
         const { text } = await generateText({
-            model: google('gemini-2.0-flash'),
+            model: google('gemini-2.5-flash'),
             prompt: systemPrompt,
             temperature: 0.3,
             maxRetries: 0,

@@ -7,19 +7,21 @@ import { NextRequest } from 'next/server';
 export const runtime = 'edge';
 export const maxDuration = 300;
 
-const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const modelMap: Record<string, any> = {
-    'claude-3-5-sonnet-20241022': anthropic('claude-3-5-sonnet-20241022'),
-    'gpt-4o': openai('gpt-4o'),
-    'gemini-3-pro-preview': google('gemini-3-pro-preview'),
-    'google/gemini-3-pro-preview': google('gemini-3-pro-preview'),
-    'gemini-3-flash-preview': google('gemini-3-flash-preview'),
-};
 
 export async function POST(req: NextRequest) {
+    const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' });
+    const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
+    const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || '' });
+
+    const modelMap: Record<string, any> = {
+        'claude-3-5-sonnet-20241022': anthropic('claude-3-5-sonnet-20241022'),
+        'gpt-4o': openai('gpt-4o'),
+        'gemini-3-pro-preview': google('gemini-3-pro-preview'),
+        'google/gemini-3-pro-preview': google('gemini-3-pro-preview'),
+        'gemini-3-flash-preview': google('gemini-3-flash-preview'),
+    };
+
     try {
         const body = await req.json();
         const { prompt, model = 'gemini-3-pro-preview', style = 'Modern', sandboxId, isEdit = false, currentCodebase = [] } = body;

@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 
-const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function POST(request: Request) {
+    const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || '' });
     try {
         const { prompt } = await request.json();
 
