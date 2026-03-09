@@ -62,7 +62,7 @@ interface WebsiteVersion {
 // --- END: ADDED FOR HISTORY FEATURE ---
 
 
-export default function AISandboxPage() {
+function URLAIContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -4055,5 +4055,15 @@ Focus on the key sections and content, making it clean and modern while preservi
         </div>
       </div>
     </div >
+  );
+}
+
+import { Suspense as ReactSuspense } from 'react';
+
+export default function AISandboxPage() {
+  return (
+    <ReactSuspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+      <URLAIContent />
+    </ReactSuspense>
   );
 }

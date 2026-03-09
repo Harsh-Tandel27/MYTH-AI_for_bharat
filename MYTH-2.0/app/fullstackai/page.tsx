@@ -130,7 +130,7 @@ const extractTextFromPdf = async (file: File): Promise<string> => {
     }
 };
 
-export default function FullStackAIPage() {
+function FullstackAIContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -2308,6 +2308,16 @@ ORIGINAL APP DESCRIPTION: ${homePromptInput}`;
         <main className="min-h-screen bg-black overflow-hidden relative">
             {showHomeScreen ? renderHomeScreen() : renderBuilder()}
         </main>
+    );
+}
+
+import { Suspense as ReactSuspense } from 'react';
+
+export default function FullstackAIPage() {
+    return (
+        <ReactSuspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+            <FullstackAIContent />
+        </ReactSuspense>
     );
 }
 

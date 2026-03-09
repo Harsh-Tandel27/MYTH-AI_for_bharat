@@ -191,7 +191,7 @@ const extractTextFromPdf = async (file: File): Promise<string> => {
 };
 
 
-export default function PromptAIPage() {
+function PromptAIContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const sandboxCreationAttempted = useRef(false);
@@ -1959,5 +1959,15 @@ Place the images where appropriate based on the user's request. Do NOT use place
                 </>
             ) : renderHomeScreen()}
         </main>
+    );
+}
+
+import { Suspense as ReactSuspense } from 'react';
+
+export default function PromptAIPage() {
+    return (
+        <ReactSuspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+            <PromptAIContent />
+        </ReactSuspense>
     );
 }

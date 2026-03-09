@@ -88,7 +88,7 @@ const extractTextFromPdf = async (file: File): Promise<string> => {
             useWorkerFetch: true,
             isEvalSupported: false,
         });
-        
+
         const pdf = await loadingTask.promise;
         let fullText = '';
 
@@ -108,8 +108,7 @@ const extractTextFromPdf = async (file: File): Promise<string> => {
     }
 };
 
-
-export default function ApplicationAIPage() {
+function ApplicationAIContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const sandboxCreationAttempted = useRef(false);
@@ -174,9 +173,9 @@ export default function ApplicationAIPage() {
     const handleMicTimeout = () => console.log('Mic timeout');
 
     const isListeningHome = false;
-    const toggleListeningHome = () => {};
+    const toggleListeningHome = () => { };
     const isListeningChat = false;
-    const toggleListeningChat = () => {};
+    const toggleListeningChat = () => { };
 
     const botVariants = {
         entry: { top: '50%', left: '50%', x: '-50%', y: '-50%', scale: 0.9, opacity: 1 },
@@ -268,8 +267,8 @@ export default function ApplicationAIPage() {
     };
 
     // Helper to add/update action steps for Bolt-like UI
-    const addActionStep = useCallback((step: any) => {}, []);
-    const updateActionStep = useCallback((id: string, updates: any) => {}, []);
+    const addActionStep = useCallback((step: any) => { }, []);
+    const updateActionStep = useCallback((id: string, updates: any) => { }, []);
     // Helper to add chat messages and save history
     const saveToHistory = useCallback((prompt: string, type: 'creation' | 'edit', files: GeneratedFile[]) => {
         const newVersion: ApplicationVersion = {
@@ -357,7 +356,7 @@ export default function ApplicationAIPage() {
             if (!response.body) return [];
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
+
             let buffer = '';
             while (true) {
                 const { done, value } = await reader.read();
@@ -365,14 +364,14 @@ export default function ApplicationAIPage() {
 
                 const chunk = decoder.decode(value, { stream: true });
                 buffer += chunk;
-                
+
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || ''; // Keep partial line in buffer
 
                 for (const line of lines) {
                     const trimmedLine = line.trim();
                     if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
-                    
+
                     try {
                         const data = JSON.parse(trimmedLine.slice(6));
                         if (data.type === 'stream' && data.text) {
@@ -380,16 +379,16 @@ export default function ApplicationAIPage() {
                             if (accumulatedRawCode.length % 500 < 50) { // Log every ~500 chars
                                 console.log('[GenerateCode] Accumulated raw text length:', accumulatedRawCode.length);
                             }
-                            
+
                             // Parse files from the accumulated AI text
                             const fileRegex = /<file path="([^"]+)">([\s\S]*?)<\/file>/g;
                             let match;
                             const parsed: GeneratedFile[] = [];
                             while ((match = fileRegex.exec(accumulatedRawCode)) !== null) {
-                                parsed.push({ 
-                                    path: match[1], 
-                                    content: match[2].trim(), 
-                                    type: match[1].split('.').pop() || 'javascript', 
+                                parsed.push({
+                                    path: match[1],
+                                    content: match[2].trim(),
+                                    type: match[1].split('.').pop() || 'javascript',
                                     completed: true
                                 });
                             }
@@ -410,7 +409,7 @@ export default function ApplicationAIPage() {
         } catch (e: any) {
             addChatMessage(`Generation failed: ${e.message}`, 'error');
         }
-        
+
         setGenerationProgress(prev => ({ ...prev, isGenerating: false }));
         return localFiles;
     };
@@ -429,12 +428,12 @@ export default function ApplicationAIPage() {
 
     const handlePromptGenerate = async () => {
         if (!homePromptInput || !homeStyleInput || generationProgress.isGenerating) return;
-        
+
         const originalPrompt = homePromptInput;
         setLoading(true);
         setHomeScreenFading(true);
         setTimeout(() => setShowHomeScreen(false), 500);
-        
+
         setTerminalOutput([]);
         setQrCodeDataUrl(null);
         setQrCodeUrl(null);
@@ -483,7 +482,7 @@ export default function ApplicationAIPage() {
             });
             const sandboxJson = await sandboxRes.json();
             if (!sandboxJson.success) throw new Error(sandboxJson.error);
-            
+
             setSandboxData({ sandboxId: sandboxJson.sandboxId, url: sandboxJson.url });
             setStatus({ text: 'Sandbox Ready', active: true });
             console.log('[Build Flow] Sandbox Ready:', sandboxJson.sandboxId);
@@ -491,17 +490,17 @@ export default function ApplicationAIPage() {
 
             // Step 2: Setup Expo environment
             console.log('[Build Flow] Starting Step 2: Setup Expo');
-            setLoadingStage('generating'); 
+            setLoadingStage('generating');
             const setupRes = await fetch('/api/applicationai/setup-expo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sandboxId: sandboxJson.sandboxId })
             });
-            
+
             if (!setupRes.body) throw new Error('Failed to start setup stream');
             const setupReader = setupRes.body.getReader();
             const setupDecoder = new TextDecoder();
-            
+
             let setupBuffer = '';
             while (true) {
                 const { done, value } = await setupReader.read();
@@ -520,7 +519,7 @@ export default function ApplicationAIPage() {
                                 setTerminalOutput(prev => [...prev, data.content]);
                             }
                             if (data.type === 'error') throw new Error(data.content);
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 }
             }
@@ -570,7 +569,7 @@ export default function ApplicationAIPage() {
                                 setTerminalOutput(prev => [...prev, data.content]);
                             }
                             if (data.type === 'error') throw new Error(data.content);
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                 }
             }
@@ -581,7 +580,7 @@ export default function ApplicationAIPage() {
             setExpoStatus('starting');
             setActiveTab('terminal');
             addChatMessage('Starting Expo development server...', 'system');
-            
+
             // 6.1: Trigger start
             const startRes = await fetch('/api/applicationai/start-expo', {
                 method: 'POST',
@@ -593,7 +592,7 @@ export default function ApplicationAIPage() {
             // 6.2: Connect to log stream (for terminal visualization only)
             const logsRes = await fetch(`/api/applicationai/expo-logs?sandboxId=${sandboxJson.sandboxId}`);
             if (!logsRes.body) throw new Error('Failed to connect to Expo log stream');
-            
+
             const logsReader = logsRes.body.getReader();
             const logsDecoder = new TextDecoder();
 
@@ -629,7 +628,7 @@ export default function ApplicationAIPage() {
                                     const dataUrl = await QRCode.toDataURL(data.url, { margin: 2, scale: 10 });
                                     setQrCodeDataUrl(dataUrl);
                                 }
-                            } catch (e) {}
+                            } catch (e) { }
                         }
                     }
                 }
@@ -642,7 +641,7 @@ export default function ApplicationAIPage() {
             const pollForQR = async () => {
                 let attempts = 0;
                 const maxAttempts = 120; // 4 minutes total (Metro can be slow in sandbox)
-                
+
                 while (attempts < maxAttempts) {
                     try {
                         const qrRes = await fetch('/api/applicationai/expo-qr', {
@@ -650,7 +649,7 @@ export default function ApplicationAIPage() {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ sandboxId: sandboxJson.sandboxId })
                         });
-                        
+
                         if (qrRes.status === 200) {
                             const data = await qrRes.json();
                             if (data.status === 'ready' && data.expo?.url) {
@@ -661,21 +660,21 @@ export default function ApplicationAIPage() {
                                 const dataUrl = await QRCode.toDataURL(data.expo.url, { margin: 2, scale: 10 });
                                 setQrCodeDataUrl(dataUrl);
                                 addChatMessage('🚀 Expo server is LIVE! Scan the QR code to test.', 'system');
-                                
+
                                 // Save initial creation to history
                                 saveToHistory(originalPrompt, 'creation', generatedFiles);
-                                
+
                                 return; // Success
                             }
                         }
                     } catch (e) {
                         console.error('[Build Flow] QR Poll error:', e);
                     }
-                    
+
                     attempts++;
                     await new Promise(resolve => setTimeout(resolve, 2000)); // Poll every 2 seconds
                 }
-                
+
                 console.error('[Build Flow] Failed to retrieve Expo URL after polling.');
             };
 
@@ -698,7 +697,7 @@ export default function ApplicationAIPage() {
 
     const handleChatSubmit = async () => {
         if (!aiChatInput.trim() || loading || !sandboxData) return;
-        
+
         const userInput = aiChatInput;
         addChatMessage(userInput, 'user');
         setAiChatInput('');
@@ -706,22 +705,22 @@ export default function ApplicationAIPage() {
 
         try {
             addChatMessage('Analyzing request and existing codebase...', 'system');
-            
+
             // 1. Generate modifications
             const editPrompt = `BASED ON THE EXISTING CODEBASE, APPLY THIS CHANGE: ${userInput}`;
             setActiveTab('code');
             const modifiedFiles = await generateCode(editPrompt, true, sandboxData.sandboxId);
-            
+
             if (modifiedFiles.length === 0) {
                 addChatMessage('No changes were identified as necessary.', 'system');
                 return;
             }
 
             addChatMessage(`Applying ${modifiedFiles.length} modified files...`, 'system');
-            
+
             // 2. Apply files
             await applyFiles(sandboxData.sandboxId, modifiedFiles);
-            
+
             // 3. Sync if package.json changed
             if (modifiedFiles.some(f => f.path === 'package.json')) {
                 addChatMessage('Dependencies updated. Synchronizing...', 'system');
@@ -757,13 +756,13 @@ export default function ApplicationAIPage() {
     };
     const downloadZip = async () => {
         if (generationProgress.files.length === 0) return;
-        
+
         try {
             const zip = new JSZip();
             generationProgress.files.forEach(file => {
                 zip.file(file.path, file.content);
             });
-            
+
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${currentProjectName.replace(/\s+/g, '_')}_mobile_app.zip`);
             addChatMessage('Project downloaded successfully!', 'system');
@@ -782,10 +781,10 @@ export default function ApplicationAIPage() {
     const handleLoadVersion = async (versionId: number) => {
         const version = applicationHistory.find(v => v.id === versionId);
         if (!version) return;
-        
+
         setGenerationProgress(prev => ({ ...prev, files: version.files }));
         if (version.files.length > 0) setSelectedFile(version.files[0].path);
-        
+
         // If we have an active sandbox, apply the files to it
         if (sandboxData?.sandboxId) {
             try {
@@ -799,20 +798,20 @@ export default function ApplicationAIPage() {
         } else {
             addChatMessage(`Loaded version from ${version.timestamp.toLocaleTimeString()} (Preview only - no active sandbox)`, 'system');
         }
-        
+
         setIsHistoryOpen(false);
     };
 
     const handleDownloadVersion = async (versionId: number) => {
         const version = applicationHistory.find(v => v.id === versionId);
         if (!version || version.files.length === 0) return;
-        
+
         try {
             const zip = new JSZip();
             version.files.forEach(file => {
                 zip.file(file.path, file.content);
             });
-            
+
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `${currentProjectName.replace(/\s+/g, '_')}_v${versionId}.zip`);
         } catch (error) {
@@ -824,9 +823,9 @@ export default function ApplicationAIPage() {
     const handleFileClick = (filePath: string) => setSelectedFile(filePath);
     const getFileIcon = (fileName: string) => { const ext = fileName.split('.').pop()?.toLowerCase(); if (['jsx', 'js'].includes(ext!)) return <SiJavascript className="w-4 h-4 text-yellow-400" />; if (['tsx', 'ts'].includes(ext!)) return <SiReact className="w-4 h-4 text-blue-400" />; if (ext === 'css') return <SiCss3 className="w-4 h-4 text-blue-400" />; if (ext === 'json') return <SiJson className="w-4 h-4 text-green-400" />; return <FiFile className="w-4 h-4 text-gray-400" />; };
 
-    const handleFileDrop = (e: any) => {};
-    const handleFileSelect = (e: any) => {};
-    const handleRemoveFile = (fileName: string) => {};
+    const handleFileDrop = (e: any) => { };
+    const handleFileSelect = (e: any) => { };
+    const handleRemoveFile = (fileName: string) => { };
 
     const renderHomeScreen = () => (
         <div className={`fixed inset-0 z-50 transition-opacity duration-500 ${homeScreenFading ? 'opacity-0' : 'opacity-100'}`}>
@@ -928,26 +927,26 @@ export default function ApplicationAIPage() {
                             </div>
                             <h3 className="text-xl font-semibold text-gray-200 mb-2">
                                 {loadingStage === 'planning' ? 'Planning your application...' :
-                                 loadingStage === 'generating' ? 'Setting up Expo...' :
-                                 'Deploying source code...'}
+                                    loadingStage === 'generating' ? 'Setting up Expo...' :
+                                        'Deploying source code...'}
                             </h3>
                             <p className="text-gray-400 text-sm">
                                 {loadingStage === 'planning' ? 'Creating React Native architecture' :
-                                 loadingStage === 'generating' ? 'Initializing Expo project' :
-                                 'Writing files to sandbox'}
+                                    loadingStage === 'generating' ? 'Initializing Expo project' :
+                                        'Writing files to sandbox'}
                             </p>
                         </div>
                     </div>
                 )}
                 {(generationProgress.isGenerating || loading) && !loadingStage && <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-20"><div className="text-center"><div className="w-12 h-12 border-4 border-gray-600 border-t-purple-400 rounded-full animate-spin mx-auto mb-3" /><p className="text-white text-sm font-medium">{generationProgress.status}</p></div></div>}
-                
+
                 {/* QR Code Display */}
                 {qrCodeDataUrl ? (
                     <div className="flex flex-col items-center justify-center p-8">
                         <div className="bg-white p-6 rounded-2xl shadow-2xl mb-6 flex items-center justify-center overflow-hidden">
-                            <img 
-                                src={qrCodeDataUrl} 
-                                alt="Expo QR Code" 
+                            <img
+                                src={qrCodeDataUrl}
+                                alt="Expo QR Code"
                                 className="w-64 h-64 object-contain"
                             />
                         </div>
@@ -1352,5 +1351,15 @@ export default function ApplicationAIPage() {
                 </>
             ) : renderHomeScreen()}
         </main>
+    );
+}
+
+import { Suspense as ReactSuspense } from 'react';
+
+export default function ApplicationAIPage() {
+    return (
+        <ReactSuspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+            <ApplicationAIContent />
+        </ReactSuspense>
     );
 }

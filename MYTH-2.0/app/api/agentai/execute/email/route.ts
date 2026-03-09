@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
     // Convert markdown/plain text to HTML
     function convertToHtml(text: string): string {
       if (!text) return '';
-      
+
       // If already HTML, return as-is
       if (text.includes('<p>') || text.includes('<div>') || text.includes('<br')) {
         return text;
       }
-      
+
       // Convert markdown-style formatting
       let result = text
         // Convert **bold** to <strong>
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         .replace(/\n/g, '<br>')
         // Wrap in paragraph tags
         ;
-      
+
       return `<p>${result}</p>`;
     }
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 </body>
 </html>`;
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend!.emails.send({
       from: 'AgentAI <onboarding@resend.dev>',
       to: [to],
       subject,
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('[Email] Resend error:', error);
       return NextResponse.json(
-        { 
+        {
           error: error.message,
           output: {
             sent: false,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Email] Error:', error);
     return NextResponse.json(
-      { 
+      {
         error: error instanceof Error ? error.message : 'Failed to send email',
         output: {
           sent: false,

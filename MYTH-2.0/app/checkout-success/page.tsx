@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('planId');
   const planName = searchParams.get('planName');
@@ -20,20 +20,20 @@ export default function CheckoutSuccessPage() {
     <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
           className="w-full h-full object-cover opacity-20"
         >
           <source src="/background-video2.mp4" type="video/mp4" />
         </video>
       </div>
-      
+
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-indigo-900/20" />
-      
+
       {/* Content */}
       <div className="relative z-10 w-full max-w-2xl mx-auto px-4 text-center">
         <motion.div
@@ -108,7 +108,7 @@ export default function CheckoutSuccessPage() {
               Go to Dashboard
               <ArrowRight className="h-4 w-4" />
             </Link>
-            
+
             <Link
               href="/billing"
               className="inline-flex items-center gap-2 border border-white/20 text-white hover:bg-white/10 font-medium px-8 py-3 rounded-xl transition-all duration-300"
@@ -129,5 +129,13 @@ export default function CheckoutSuccessPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>}>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
