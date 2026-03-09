@@ -294,19 +294,8 @@ export async function POST(request: NextRequest) {
 
       if (sandbox) {
         try {
-          // Clean up the src directory
-          const cleanupCode = `
-import shutil
-import os
-
-src_dir = "/home/user/app/src"
-if os.path.exists(src_dir):
-    shutil.rmtree(src_dir)
-    print(f"Cleaned: {src_dir}")
-    os.makedirs(src_dir, exist_ok=True)
-    os.makedirs(os.path.join(src_dir, "components"), exist_ok=True)
-`;
-          await sandbox.runCode(cleanupCode);
+          // Clean up the src directory using bash
+          await sandbox.commands.run('rm -rf /home/user/app/src && mkdir -p /home/user/app/src/components');
 
           // Clear file tracking
           if (global.existingFiles) {
