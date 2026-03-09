@@ -768,18 +768,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             const cssContent = await sandboxInstance.files.read(cssPath);
             let newContent = '';
             if (cssContent.includes('@tailwind base') || cssContent.includes('@tailwind components')) {
-              const lines = cssContent.split('\\n').filter(l => !l.startsWith('/* Rebuild:'));
-              newContent = \`/* Rebuild: \${timestamp} */\\n\` + lines.join('\\n');
+              const lines = cssContent.split('\n').filter(l => !l.startsWith('/* Rebuild:'));
+              newContent = `/* Rebuild: ${timestamp} */\n` + lines.join('\n');
               console.log('✓ Added rebuild timestamp to existing CSS');
             } else {
-              const tailwindHeader = "@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n\\n";
-              newContent = \`/* Rebuild: \${timestamp} */\\n\` + tailwindHeader + cssContent;
+              const tailwindHeader = "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n";
+              newContent = `/* Rebuild: ${timestamp} */\n` + tailwindHeader + cssContent;
               console.log('✓ Added Tailwind directives to CSS');
             }
             await sandboxInstance.files.write(cssPath, newContent);
           } catch (err) {
             // File doesn't exist
-            const properCss = \`/* Rebuild: \${timestamp} */\\n@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n\\nbody { font-family: sans-serif; }\\n\`;
+            const properCss = `/* Rebuild: ${timestamp} */\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\nbody { font-family: sans-serif; }\n`;
             await sandboxInstance.files.write(cssPath, properCss);
             console.log('✓ Created new Tailwind CSS file');
           }
@@ -798,7 +798,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           await sendProgress({
             type: 'step',
             step: 3,
-            message: `Executing ${ commandsArray.length } commands...`
+            message: `Executing ${commandsArray.length} commands...`
           });
 
           for (const [index, cmd] of commandsArray.entries()) {
@@ -845,7 +845,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               });
             } catch (error) {
               if (results.errors) {
-                results.errors.push(`Failed to execute ${ cmd }: ${ (error as Error).message } `);
+                results.errors.push(`Failed to execute ${cmd}: ${(error as Error).message}`);
               }
               await sendProgress({
                 type: 'command-error',
@@ -862,7 +862,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           results,
           explanation: parsed.explanation,
           structure: parsed.structure,
-          message: `Successfully applied ${ results.filesCreated.length } files`
+          message: `Successfully applied ${results.filesCreated.length} files`
         });
 
         // Track applied files in conversation state
