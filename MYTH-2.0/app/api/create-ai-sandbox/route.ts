@@ -42,7 +42,7 @@ export async function POST() {
 
     // Create base sandbox - we'll set up Vite ourselves for full control
     console.log(`[create-ai-sandbox] Creating base E2B sandbox with ${appConfig.e2b.timeoutMinutes} minute timeout...`);
-    sandbox = await Sandbox.create({
+    sandbox = await Sandbox.create('base', {
       apiKey: process.env.E2B_API_KEY,
       timeoutMs: appConfig.e2b.timeoutMs
     });
