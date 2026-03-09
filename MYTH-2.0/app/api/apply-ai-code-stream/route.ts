@@ -540,17 +540,17 @@ export async function POST(request: NextRequest) {
         });
         if (!hasIndexCss) {
           try {
-            await sandboxInstance.runCode(`
-import os
-css_path = "/home/user/app/src/index.css"
-if not os.path.exists(css_path):
-    os.makedirs(os.path.dirname(css_path), exist_ok=True)
-    with open(css_path, 'w') as f:
-        f.write("@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n")
-    print("Pre-created index.css for Tailwind")
-else:
-    print("index.css already exists")
-            `);
+            const cssPath = '/home/user/app/src/index.css';
+            const cssContent = "@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n";
+            await sandboxInstance.commands.run('mkdir -p /home/user/app/src');
+
+            const exists = await sandboxInstance.commands.run('test -f /home/user/app/src/index.css && echo "yes" || echo "no"');
+            if (exists.stdout.trim() !== "yes") {
+              await sandboxInstance.files.write(cssPath, cssContent);
+              console.log("Pre-created index.css for Tailwind");
+            } else {
+              console.log("index.css already exists");
+            }
           } catch (e) {
             console.warn('[apply-ai-code-stream] Failed to pre-create index.css:', e);
           }
@@ -597,19 +597,10 @@ else:
               fileContent = fileContent.replace(/import\s+['"]\.\/(?!index\.css|App\.css|styles\.css|global\.css)[^'"]+\.css['"];?\s*\n?/g, '');
             }
 
-            // Write the file using Python (code-interpreter SDK)
-            const escapedContent = fileContent
-              .replace(/\\/g, '\\\\')
-              .replace(/"""/g, '\\"\\"\\"')
-              .replace(/\$/g, '\\$');
-
-            await sandboxInstance.runCode(`
-import os
-os.makedirs(os.path.dirname("${fullPath}"), exist_ok=True)
-with open("${fullPath}", 'w') as f:
-    f.write("""${escapedContent}""")
-print(f"File written: ${fullPath}")
-            `);
+            // Write the file
+            await sandboxInstance.commands.run(`mkdir -p $(dirname "${fullPath}")`);
+            await sandboxInstance.files.write(fullPath, fileContent);
+            console.log(`File written: ${fullPath}`);
 
             // Update file cache
             if (global.sandboxState?.fileCache) {
@@ -715,15 +706,9 @@ export default ${component.name};
 `;
 
                 const fullPath = `/home/user/app/${component.path}`;
-                const escapedStub = stubContent.replace(/\\/g, '\\\\').replace(/"""/g, '\\"\\"\\"').replace(/\$/g, '\\$');
-
-                await sandboxInstance.runCode(`
-import os
-os.makedirs(os.path.dirname("${fullPath}"), exist_ok=True)
-with open("${fullPath}", 'w') as f:
-    f.write("""${escapedStub}""")
-print(f"Stub created: ${fullPath}")
-                `);
+                await sandboxInstance.commands.run(`mkdir -p $(dirname "${fullPath}")`);
+                await sandboxInstance.files.write(fullPath, stubContent);
+                console.log(`Stub created: ${fullPath}`);
 
                 results.filesCreated.push(component.path);
                 if (global.existingFiles) global.existingFiles.add(component.path);
@@ -753,14 +738,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 `;
-            const escapedMain = mainJsxContent.replace(/\\/g, '\\\\').replace(/"""/g, '\\"\\"\\"').replace(/\$/g, '\\$');
-
-            await sandboxInstance.runCode(`
-import os
-with open("/home/user/app/src/main.jsx", 'w') as f:
-    f.write("""${escapedMain}""")
-print("Created main.jsx entry point")
-            `);
+            await sandboxInstance.files.write('/home/user/app/src/main.jsx', mainJsxContent);
+            console.log("Created main.jsx entry point");
 
             results.filesCreated.push('src/main.jsx');
             if (global.existingFiles) global.existingFiles.add('src/main.jsx');
@@ -782,45 +761,30 @@ print("Created main.jsx entry point")
           });
 
           // Touch the CSS file and add a timestamp to force Vite to recompile
-          await sandboxInstance.runCode(`
-import os
-import time
+          const cssPath = '/home/user/app/src/index.css';
+          const timestamp = Math.floor(Date.now() / 1000);
 
-css_file = "/home/user/app/src/index.css"
-timestamp = int(time.time())
-
-if os.path.exists(css_file):
-    # Read existing content
-    with open(css_file, 'r') as f:
-        content = f.read()
-    
-    # If content already has Tailwind directives, just add a rebuild comment
-    if '@tailwind base' in content or '@tailwind components' in content:
-        # Remove any previous rebuild comment and add new one
-        lines = content.split('\n')
-        lines = [l for l in lines if not l.startswith('/* Rebuild:')]
-        new_content = f"/* Rebuild: {timestamp} */\n" + '\n'.join(lines)
-        with open(css_file, 'w') as f:
-            f.write(new_content)
-        print(f"✓ Added rebuild timestamp to existing CSS")
-    else:
-        # No Tailwind directives - add them at the top but preserve existing content
-        tailwind_header = "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n"
-        new_content = f"/* Rebuild: {timestamp} */\n" + tailwind_header + content
-        with open(css_file, 'w') as f:
-            f.write(new_content)
-        print(f"✓ Added Tailwind directives to CSS")
-else:
-    # File doesn't exist - create with basic Tailwind
-    proper_css = f"/* Rebuild: {timestamp} */\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\nbody {{ font-family: sans-serif; }}\n"
-    with open(css_file, 'w') as f:
-        f.write(proper_css)
-    print(f"✓ Created new Tailwind CSS file")
-
-# Give Vite HMR time to detect the change and rebuild
-time.sleep(0.5)
-print("✓ CSS rebuild complete")
-          `);
+          try {
+            const cssContent = await sandboxInstance.files.read(cssPath);
+            let newContent = '';
+            if (cssContent.includes('@tailwind base') || cssContent.includes('@tailwind components')) {
+              const lines = cssContent.split('\\n').filter(l => !l.startsWith('/* Rebuild:'));
+              newContent = \`/* Rebuild: \${timestamp} */\\n\` + lines.join('\\n');
+              console.log('✓ Added rebuild timestamp to existing CSS');
+            } else {
+              const tailwindHeader = "@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n\\n";
+              newContent = \`/* Rebuild: \${timestamp} */\\n\` + tailwindHeader + cssContent;
+              console.log('✓ Added Tailwind directives to CSS');
+            }
+            await sandboxInstance.files.write(cssPath, newContent);
+          } catch (err) {
+            // File doesn't exist
+            const properCss = \`/* Rebuild: \${timestamp} */\\n@tailwind base;\\n@tailwind components;\\n@tailwind utilities;\\n\\nbody { font-family: sans-serif; }\\n\`;
+            await sandboxInstance.files.write(cssPath, properCss);
+            console.log('✓ Created new Tailwind CSS file');
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log("✓ CSS rebuild complete");
 
           console.log('[apply-ai-code-stream] Tailwind CSS rebuild triggered');
         } catch (cssError) {
@@ -834,7 +798,7 @@ print("✓ CSS rebuild complete")
           await sendProgress({
             type: 'step',
             step: 3,
-            message: `Executing ${commandsArray.length} commands...`
+            message: `Executing ${ commandsArray.length } commands...`
           });
 
           for (const [index, cmd] of commandsArray.entries()) {
@@ -881,7 +845,7 @@ print("✓ CSS rebuild complete")
               });
             } catch (error) {
               if (results.errors) {
-                results.errors.push(`Failed to execute ${cmd}: ${(error as Error).message}`);
+                results.errors.push(`Failed to execute ${ cmd }: ${ (error as Error).message } `);
               }
               await sendProgress({
                 type: 'command-error',
@@ -898,7 +862,7 @@ print("✓ CSS rebuild complete")
           results,
           explanation: parsed.explanation,
           structure: parsed.structure,
-          message: `Successfully applied ${results.filesCreated.length} files`
+          message: `Successfully applied ${ results.filesCreated.length } files`
         });
 
         // Track applied files in conversation state
