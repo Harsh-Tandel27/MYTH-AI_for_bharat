@@ -30,8 +30,8 @@ export const CREDIT_COSTS = {
     PROMPT_GENERATION: 10,
     MERN_BUILD: 25,
     CHAT_EDIT: 5,
-    SANDBOX_CREATION: 3,
-    URL_CLONE: 8,
+    SANDBOX_CREATION: 1, // lowered from 3
+    URL_CLONE: 2, // lowered from 8
     DATA_DASHBOARD: 7,
 } as const;
 
